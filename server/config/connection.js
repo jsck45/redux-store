@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/mern-shopping');
+
+// Replace with your MongoDB Atlas connection string
+const MONGODB_URI = 'mongodb+srv://ecommuser:ecommuser@cluster0.ktuyttz.mongodb.net/?retryWrites=true&w=majority';
+
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 module.exports = mongoose.connection;
