@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 
 import Cart from '../components/Cart';
-import { useStoreContext } from '../utils/GlobalState';
+// import { useStoreContext } from '../utils/GlobalState';
+import { useSelector, useDispatch } from 'react-redux'; // Import the useSelector and useDispatch from Redux
+
 import {
   REMOVE_FROM_CART,
   UPDATE_CART_QUANTITY,
@@ -15,22 +17,18 @@ import { idbPromise } from '../utils/helpers';
 import spinner from '../assets/spinner.gif';
 
 function Detail() {
-  const [state, dispatch] = useStoreContext();
+  const dispatch = useDispatch(); // Get the dispatch function from Redux
   const { id } = useParams();
 
-  const [currentProduct, setCurrentProduct] = useState({});
+  const currentProduct = useSelector((state) =>
+    state.products.find((product) => product._id === id)
+  );
+  const cart = useSelector((state) => state.cart);
 
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
-  const { products, cart } = state;
-
   useEffect(() => {
-    // already in global store
-    if (products.length) {
-      setCurrentProduct(products.find((product) => product._id === id));
-    }
-    // retrieved from server
-    else if (data) {
+    if (data) {
       dispatch({
         type: UPDATE_PRODUCTS,
         products: data.products,
@@ -39,9 +37,7 @@ function Detail() {
       data.products.forEach((product) => {
         idbPromise('products', 'put', product);
       });
-    }
-    // get cache from idb
-    else if (!loading) {
+    } else if (!loading) {
       idbPromise('products', 'get').then((indexedProducts) => {
         dispatch({
           type: UPDATE_PRODUCTS,
@@ -49,7 +45,7 @@ function Detail() {
         });
       });
     }
-  }, [products, data, loading, dispatch, id]);
+  }, [data, loading, dispatch]);
 
   const addToCart = () => {
     const itemInCart = cart.find((cartItem) => cartItem._id === id);
@@ -83,7 +79,7 @@ function Detail() {
 
   return (
     <>
-      {currentProduct && cart ? (
+      {currentProduct ? (
         <div className="container my-1">
           <Link to="/">← Back to Products</Link>
 
